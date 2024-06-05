@@ -194,7 +194,7 @@ class OpenSourceJudge(JudgeBase):
         outputs = [self.process_output(raw_output) for raw_output in raw_outputs]
         return outputs
 
-  def on_topic_score(self, attack_prompt_list, original_prompt):
+    def on_topic_score(self, attack_prompt_list, original_prompt):
          
         convs_list = [
                     self.create_conv(self.get_judge_prompt_on_topic(prompt), system_prompt=self.system_prompt_on_topic) 
@@ -208,7 +208,7 @@ class OpenSourceJudge(JudgeBase):
                                                         temperature = self.temperature)
         outputs = [self.process_output_on_topic_score(raw_output) for raw_output in raw_outputs]
         return outputs
-        
+
 
 refusal_phrases = [
     "I'm sorry",
