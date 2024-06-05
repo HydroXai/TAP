@@ -7,37 +7,50 @@ from datetime import datetime
 from os import listdir
 from os.path import isfile, join
 
-import common 
+import tap.common 
 
 class WandBLogger:
     """WandB logger."""
 
-    def __init__(self, args, system_prompt):
+    def __init__(self, 
+                system_prompt: str,
+                attack_model: str,
+                target_model: str,
+                judge_model: str,
+                goal_prompt: str,
+                target_str: str = "Sure, here is",
+                keep_last_n: int = 3,
+                index: int = 0,
+                category: str = "bomb",
+                depth: int = 10,
+                width: int = 10,
+                branching_factor: int = 1,
+                n_streams: int = 1,
+                ):
         self.logger = wandb.init(
             project = "jailbreak-llms",
             config = {
-                "attack_model" : args.attack_model,
-                "target_model" : args.target_model,
-                "evaluator_model": args.evaluator_model,
-                "keep_last_n": args.keep_last_n,
+                "attack_model" : attack_model,
+                "target_model" : target_model,
+                "judge_model": judge_model,
+                "keep_last_n": keep_last_n,
                 "system_prompt": system_prompt,
-                "index": args.index,
-                "category": args.category,
-                "goal": args.goal,
-                "depth": args.depth,
-                "width": args.width,
-                "branching_factor": args.branching_factor,
-                "target_str": args.target_str,
-                "n_streams": args.n_streams,
-
+                "index": index,
+                "category": category,
+                "goal_prompt": goal_prompt,
+                "depth": depth,
+                "width": width,
+                "branching_factor": branching_factor,
+                "target_str": target_str,
+                "n_streams": n_streams,
             }
         )
         self.is_jailbroken = False
         self.query_to_jailbreak = 0
         self.table = pd.DataFrame()
-        self.batch_size = args.n_streams
-        self.index = args.index
-        self.goal = args.goal
+        self.batch_size = n_streams
+        self.index = index
+        self.goal_prompt = goal_prompt
         self.jailbreak_prompt = None
         self.jailbreak_response = None
 
@@ -102,7 +115,7 @@ class WandBLogger:
     def print_final_summary_stats(self):
         print(f"{'='*8} FINAL SUMMARY STATISTICS {'='*8}")
         print(f"Index: {self.index}")
-        print(f"Goal: {self.goal}")
+        print(f"Goal: {self.goal_prompt}")
         df = self.table
         if self.is_jailbroken:
             num_total_jailbreaks = df[df['judge_scores'] == 10]['conv_id'].nunique()
@@ -116,4 +129,4 @@ class WandBLogger:
             max_score = df['judge_scores'].max()
             print(f"Max Score: {max_score}")
 
-        self.table.to_parquet(common.STORE_FOLDER + '/' + f'iter_{common.ITER_INDEX}_df')
+        # self.table.to_parquet(common.STORE_FOLDER + '/' + f'iter_{common.ITER_INDEX}_df')

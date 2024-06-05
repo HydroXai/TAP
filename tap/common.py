@@ -61,3 +61,4 @@ def conv_template(template_name, self_id=None, parent_id=None):
     template.parent_id = parent_id
 
     return template 
+    

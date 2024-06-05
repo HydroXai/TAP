@@ -9,7 +9,7 @@ import google.generativeai as genai
 import urllib3
 from copy import deepcopy
 
-from config import LLAMA_API_LINK, VICUNA_API_LINK
+from tap.config import LLAMA_API_LINK, VICUNA_API_LINK
 
     
 class LanguageModel():
@@ -28,6 +28,8 @@ class HuggingFace(LanguageModel):
         self.model = model 
         self.tokenizer = tokenizer
         self.eos_token_ids = [self.tokenizer.eos_token_id]
+        if 'llama3' in self.model_name.lower() or 'llama-3' in self.model_name.lower():
+            self.eos_token_ids.append(self.tokenizer.convert_tokens_to_ids("<|eot_id|>"))
 
     def batched_generate(self, 
                         full_prompts_list,
@@ -46,6 +48,7 @@ class HuggingFace(LanguageModel):
                 do_sample=True,
                 temperature=temperature,
                 eos_token_id=self.eos_token_ids,
+                pad_token_id=self.tokenizer.pad_token_id,  # added for Mistral
                 top_p=top_p,
             )
         else:
@@ -54,6 +57,7 @@ class HuggingFace(LanguageModel):
                 max_new_tokens=max_n_tokens, 
                 do_sample=False,
                 eos_token_id=self.eos_token_ids,
+                pad_token_id=self.tokenizer.pad_token_id,  # added for Mistral
                 top_p=1,
                 temperature=1, # To prevent warning messages
             )
@@ -245,7 +249,58 @@ class GPT(LanguageModel):
                         temperature: float,
                         top_p: float = 1.0,):
         return [self.generate(conv, max_n_tokens, temperature, top_p) for conv in convs_list]
-     
+
+class Claude():
+    API_RETRY_SLEEP = 10
+    API_ERROR_OUTPUT = "$ERROR$"
+    API_QUERY_SLEEP = 1
+    API_MAX_RETRY = 5
+    API_TIMEOUT = 20
+    API_KEY = os.getenv("ANTHROPIC_API_KEY")
+   
+    def __init__(self, model_name) -> None:
+        self.model_name = model_name
+        self.model= anthropic.Anthropic(
+            api_key=self.API_KEY,
+            )
+
+    def generate(self, conv: List, 
+                max_n_tokens: int, 
+                temperature: float,
+                top_p: float):
+        '''
+        Args:
+            conv: List of conversations 
+            max_n_tokens: int, max number of tokens to generate
+            temperature: float, temperature for sampling
+            top_p: float, top p for sampling
+        Returns:
+            str: generated response
+        '''
+        output = self.API_ERROR_OUTPUT
+        for _ in range(self.API_MAX_RETRY):
+            try:
+                completion = self.model.messages.create(
+                    model=self.model_name,
+                    max_tokens=max_n_tokens,
+                    messages=[conv],
+                )
+                output = completion.completion
+                break
+            except anthropic.APIError as e:
+                print(type(e), e)
+                time.sleep(self.API_RETRY_SLEEP)
+        
+            time.sleep(self.API_QUERY_SLEEP)
+        return output
+    
+    def batched_generate(self, 
+                        convs_list: List[List[Dict]],
+                        max_n_tokens: int, 
+                        temperature: float,
+                        top_p: float = 1.0,):
+        return [self.generate(conv, max_n_tokens, temperature, top_p) for conv in convs_list]
+        
 class PaLM():
     API_RETRY_SLEEP = 10
     API_ERROR_OUTPUT = "$ERROR$"
