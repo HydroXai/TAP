@@ -12,6 +12,8 @@ R2D2_PATH = "cais/zephyr_7b_r2d2"
 LLAMA3_8B_PATH = "/media/d1/huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct"
 LLAMA3_70B_PATH = "/media/d1/huggingface.co/models/meta-llama/Meta-Llama-3-70B-Instruct"
 
+VICUNA_API_LINK ="https://..." # ADD LINK
+LLAMA_API_LINK = "https://..." # ADD LINK
 
 ATTACK_TEMP = 1
 TARGET_TEMP = 0
