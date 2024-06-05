@@ -92,7 +92,7 @@ def prune(on_topic_scores=None,
 
 def run(
     attack_model: str,
-    taregt_model: str,
+    target_model: str,
     judge_model: str,
     goal_prompt: str,
     target_str: str = "Sure, here is",
@@ -129,7 +129,7 @@ def run(
         goal_prompt,
         target_str
     )
-    attack_llm, target_llm = load_attack_and_target_models(attack_model, attack_max_n_tokens, max_n_attack_attempts, target_model, target_max_n_tokens)
+    attack_llm, target_llm = load_attack_and_target_models(attack_model, attack_max_n_tokens, max_n_attack_attempts)
     print('Done loading attacker and target!', flush=True)
 
     judge_llm = load_judge(judge_max_n_tokens, judge_temperature, judge_model, goal_prompt, target_str)

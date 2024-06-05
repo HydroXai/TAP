@@ -15,7 +15,7 @@ def load_target_model(target_model: str, target_max_n_tokens: int):
                         )
     return target_llm
 
-def load_attack_and_target_models(attack_model: str, attack_max_n_tokens: int, max_n_attack_attempts: int):
+def load_attack_and_target_models(attack_model: str, attack_max_n_tokens: int, max_n_attack_attempts: int, target_model: str, target_max_n_tokens: int):
     # Load attack model and tokenizer
     attack_llm = AttackLLM(model_name = attack_model, 
                         max_n_tokens = attack_max_n_tokens, 
