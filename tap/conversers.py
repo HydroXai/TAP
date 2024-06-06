@@ -269,6 +269,7 @@ def load_indiv_model(model_name):
         if 'mistral' in model_path.lower() or 'mixtral' in model_path.lower():
             tokenizer.pad_token = tokenizer.eos_token
             tokenizer.pad_token_id = tokenizer.eos_token_id
+            tokenizer.padding_side = 'left'
         if not tokenizer.pad_token:
             tokenizer.pad_token = tokenizer.eos_token
 
