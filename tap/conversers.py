@@ -1,4 +1,5 @@
 
+import os
 from tap import common
 from tap.language_models import GPT, PaLM, HuggingFace, APIModelLlama7B, APIModelVicuna13B, GeminiPro, Claude
 import torch
@@ -174,6 +175,7 @@ class TargetLLM():
 
     def get_response(self, prompts_list, no_template=False):
         batchsize = len(prompts_list)
+        tokenizer = self.model.tokenizer
         convs_list = [common.conv_template(self.template) for _ in range(batchsize)]
         full_prompts = []  # batch of strings
         if no_template:
@@ -399,8 +401,4 @@ def get_model_path_and_template(model_name):
     }
     assert model_name in full_model_dict, f"Model {model_name} not found in `full_model_dict` (available keys {full_model_dict.keys()})"
     path, template = full_model_dict[model_name]["path"], full_model_dict[model_name]["template"]
-    return path, template
-
-
-
-    
+    return path, template    

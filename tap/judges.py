@@ -3,6 +3,8 @@ import re
 from fastchat.model import (
     get_conversation_template
 )
+from transformers import AutoTokenizer, AutoModelForCausalLM
+import torch
 
 from tap.system_prompts import get_judge_system_prompt_for_judge, get_judge_system_prompt_for_on_topic
 
@@ -38,8 +40,8 @@ class JudgeBase:
         self.judge_name = judge_model
         self.goal = goal
         self.target_str = target_str
-        self.system_prompt = get_judge_system_prompt(goal, target_str)
-        self.system_prompt_on_topic = get_judge_system_prompt_for_on_topic(args.goal)
+        self.system_prompt = get_judge_system_prompt_for_judge(goal, target_str)
+        self.system_prompt_on_topic = get_judge_system_prompt_for_on_topic(goal)
 
     def get_judge_prompt(self, attack_prompt, target_response):
         prompt = f"[PROMPT]:{attack_prompt}\n[ASSISTANT'S RESPONSE]: {target_response}" 
@@ -70,7 +72,7 @@ class JudgeBase:
         match = re.search(pattern, raw_output.lower())
         output = int(match.group(1) == 'yes') if match else None
         if output is None:
-            print(f"Error in processing judge output: {raw_output}" )
+            print(f"Error in processing on topic output: {raw_output}" )
             output = 1 
         return output
 
@@ -191,7 +193,7 @@ class OpenSourceJudge(JudgeBase):
         raw_outputs = self.judge_model.batched_generate(full_prompts, 
                                                         max_n_tokens=self.max_n_tokens,
                                                         temperature=self.temperature)
-        outputs = [self.process_output(raw_output) for raw_output in raw_outputs]
+        outputs = [self.process_output_judge_score(raw_output) for raw_output in raw_outputs]
         return outputs
 
     def on_topic_score(self, attack_prompt_list, original_prompt):
@@ -279,7 +281,7 @@ class LlamaGuardJudge(JudgeBase):
         self.judge_model = model
 
     def moderate(self, conv):
-        input_ids = self.tokenizer.apply_chat_template(conv, return_tensors="pt")
+        input_ids = self.tokenizer.apply_chat_template(conv, return_tensors="pt").to('cuda')
         output = self.judge_model.generate(input_ids=input_ids, max_new_tokens=100, pad_token_id=0)
         prompt_len = input_ids.shape[-1]
         return self.tokenizer.decode(output[0][prompt_len:], skip_special_tokens=True)

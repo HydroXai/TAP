@@ -7,7 +7,7 @@ from datetime import datetime
 from os import listdir
 from os.path import isfile, join
 
-import tap.common 
+from tap import common 
 
 class WandBLogger:
     """WandB logger."""

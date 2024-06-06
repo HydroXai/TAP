@@ -1,4 +1,4 @@
-VICUNA_PATH = "/media/d1/huggingface.co/models/lmsys/vicuna-13b-v1.5"
+VICUNA_PATH = "/media/d1/huggingface.co/models/lmsys/vicuna-7b-v1.5"
 LLAMA_PATH = "/media/d1/huggingface.co/models/meta-llama/Llama-2-7b-chat-hf"
 
 LLAMA_7B_PATH = "/media/d1/huggingface.co/models/meta-llama/Llama-2-7b-chat-hf"

@@ -129,7 +129,7 @@ def run(
         goal_prompt,
         target_str
     )
-    attack_llm, target_llm = load_attack_and_target_models(attack_model, attack_max_n_tokens, max_n_attack_attempts)
+    attack_llm, target_llm = load_attack_and_target_models(attack_model, attack_max_n_tokens, max_n_attack_attempts, target_model, target_max_n_tokens)
     print('Done loading attacker and target!', flush=True)
 
     judge_llm = load_judge(judge_max_n_tokens, judge_temperature, judge_model, goal_prompt, target_str)
@@ -258,6 +258,10 @@ def run(
         for conv in convs_list:
             # Note that this does not delete the conv.role (i.e., the system prompt)
             conv.messages = conv.messages[-2*(keep_last_n):]
+
+        # Print prompts, responses, and scores
+        for i, (prompt, improv, response, score) in enumerate(zip(adv_prompt_list, improv_list, target_response_list, judge_scores)):
+            print(f"{i+1}/{batchsize}\n\n[IMPROVEMENT]:\n{improv} \n\n[PROMPT]:\n{prompt} \n\n[RESPONSE]:\n{response}\n\n[SCORE]:\n{score}\n\n")
 
         # Early stopping criterion
         if any([score == 10 for score in judge_scores]):
