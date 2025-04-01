@@ -107,7 +107,7 @@ def run(
     category: str = "bomb",
     iter_index: int = -1,
     store_folder: str = "",
-    branching_factor: int = 1,
+    branching_factor: int = 2,
     width: int = 10,
     depth: int = 10,
     logging: bool = False,

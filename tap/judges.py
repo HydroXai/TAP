@@ -3,7 +3,8 @@ import re
 from fastchat.model import (
     get_conversation_template
 )
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from accelerate import Accelerator
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 
 from tap.system_prompts import get_judge_system_prompt_for_judge, get_judge_system_prompt_for_on_topic
@@ -12,6 +13,14 @@ from tap.language_models import GPT
 from tap.conversers import load_indiv_model
 from tap.common import conv_template
 
+
+accelerator = Accelerator()
+quantization_config = BitsAndBytesConfig(
+    load_in_8Bit=True,
+    bnb_8bit_compute_dtype=torch.bfloat16
+)
+
+
 def load_judge(judge_max_n_tokens: int, judge_temperature: int, judge_model: str, goal: str, target_str: str):
     if "gpt" in judge_model:
         return GPTJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str)
@@ -19,9 +28,9 @@ def load_judge(judge_max_n_tokens: int, judge_temperature: int, judge_model: str
         return NoJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str)
     elif judge_model == "refuse-judge":
         return RefuseJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str)
-    elif "llamaguard" in judge_model.lower():
-        tokenizer = AutoTokenizer.from_pretrained(judge_model)
-        model = AutoModelForCausalLM.from_pretrained(judge_model, torch_dtype=torch.bfloat16, device_map="auto")
+    elif "llamaguard" in judge_model.lower() or "llama-guard" in judge_model.lower():
+        tokenizer = AutoTokenizer.from_pretrained(judge_model, padding_side='left')
+        model = AutoModelForCausalLM.from_pretrained(judge_model, device_map="auto", quantization_config=quantization_config)
         return LlamaGuardJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str, tokenizer, model)
     else:
         model, template = load_indiv_model(judge_model)
